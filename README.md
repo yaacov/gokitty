@@ -16,6 +16,13 @@ Like the standard `http.ServeMux`, `gokitty/pkg/mux` matches incoming requests a
 # Example
 
 ``` go
+import (
+	"net/http"
+  ...
+
+	"github.com/yaacov/gokitty/pkg/mux"
+)
+
 // notFound handles not found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(404)
@@ -30,8 +37,6 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-``` go
-...
 // Register our routes.
 myRouter := mux.Router{
   NotFoundHandler: notFound,
