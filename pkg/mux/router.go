@@ -18,7 +18,7 @@
 // Usage:
 //  func getValHandler(w http.ResponseWriter, r *http.Request) {
 //      // Retrieve rount variables.
-//	    key, ok := mux.Var(r, "key")
+//      key, ok := mux.Var(r, "key")
 //      ...
 //      action, ok := mux.Var(r, "action")
 //      ...
@@ -27,15 +27,15 @@
 //  ...
 //
 //  myRouter := mux.Router{
-//		NotFoundHandler: notFound,
-//	}
-//	myRouter.HandleFunc("GET", "/val/:key/:action", getValHandler)
+//      NotFoundHandler: notFound,
+//  }
+//  myRouter.HandleFunc("GET", "/val/:key/:action", getValHandler)
 //
-//	s := &http.Server{
-//		Addr:           ":8080",
-//		Handler:        loggingMiddleware(myRouter),
-//	}
-//	log.Fatal(s.ListenAndServe())
+//  s := &http.Server{
+//      Addr:           ":8080",
+//      Handler:        loggingMiddleware(myRouter),
+//  }
+//  log.Fatal(s.ListenAndServe())
 package mux
 
 import (
