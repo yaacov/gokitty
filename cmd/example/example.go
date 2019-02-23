@@ -45,7 +45,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func getVal(w http.ResponseWriter, r *http.Request) {
-	key, ok := mux.GetPathArg(r, "key")
+	key, ok := mux.Var(r, "key")
 
 	// Get one value by key:
 	if ok {
@@ -99,7 +99,7 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteVal(w http.ResponseWriter, r *http.Request) {
-	key, ok := mux.GetPathArg(r, "key")
+	key, ok := mux.Var(r, "key")
 
 	// Get one value by key:
 	if ok {

@@ -14,6 +14,28 @@
 // limitations under the License.
 
 // Package mux is a small, fast and cute http mux package.
+//
+// Usage:
+//  func getValHandler(w http.ResponseWriter, r *http.Request) {
+//      // Retrieve rount variables.
+//	    key, ok := mux.Var(r, "key")
+//      ...
+//      action, ok := mux.Var(r, "action")
+//      ...
+//  }
+//
+//  ...
+//
+//  myRouter := mux.Router{
+//		NotFoundHandler: notFound,
+//	}
+//	myRouter.HandleFunc("GET", "/val/:key/:action", getValHandler)
+//
+//	s := &http.Server{
+//		Addr:           ":8080",
+//		Handler:        loggingMiddleware(myRouter),
+//	}
+//	log.Fatal(s.ListenAndServe())
 package mux
 
 import (
@@ -24,6 +46,18 @@ import (
 )
 
 // Router registers routes to be matched and dispatches a handler.
+//
+// It implements the http.Handler interface, so it can be registered to serve
+// requests:
+//
+//     var router = mux.Router{
+//         NotFoundHandler: notFoundHandler,
+//     }
+//     router.HandleFunc("GET", "/val", getVaHandler)
+//
+//     func main() {
+//         http.Handle("/", router)
+//     }
 type Router struct {
 	// Configurable Handler to be used when no route matches.
 	NotFoundHandler func(http.ResponseWriter, *http.Request)
@@ -32,7 +66,7 @@ type Router struct {
 	routes []route
 }
 
-// HandleFunc registers a new route.
+// HandleFunc registers a new route with a matcher for the URL path.
 func (r *Router) HandleFunc(method string, path string, handler func(http.ResponseWriter, *http.Request)) {
 	// Sanity check.
 	if len(path) == 0 {
@@ -55,8 +89,9 @@ func (r *Router) HandleFunc(method string, path string, handler func(http.Respon
 	})
 }
 
-// GetPathArg retrvies a path argument if exist.
-func GetPathArg(r *http.Request, key string) (string, bool) {
+// Var returns route variables for the current request using the route
+// variable key, ok is true if key is found and value retrieved, o/w ok is false.
+func Var(r *http.Request, key string) (string, bool) {
 	argv := r.Context().Value(ctxKey("argv"))
 	if argv == nil {
 		return "", false
@@ -66,7 +101,10 @@ func GetPathArg(r *http.Request, key string) (string, bool) {
 	return argvMap[key], ok
 }
 
-// ServeHTTP try to match a route to the request and dispatche a handler.
+// ServeHTTP dispatches the handler registered in the matched route.
+//
+// When there is a match, route variables can be retrieved calling
+// mux.Var(request, key).
 func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Get the path, and clean it.
 	path := req.URL.EscapedPath()
