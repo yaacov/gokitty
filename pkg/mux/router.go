@@ -1,0 +1,140 @@
+// Copyright 2018 Yaacov Zamir <kobi.zamir@gmail.com>
+// and other contributors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Package mux is a small, fast and cute http mux package.
+package mux
+
+import (
+	"context"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
+// Router registers routes to be matched and dispatches a handler.
+type Router struct {
+	// Configurable Handler to be used when no route matches.
+	NotFoundHandler func(http.ResponseWriter, *http.Request)
+
+	// List of http routes.
+	routes []route
+}
+
+// HandleFunc registers a new route.
+func (r *Router) HandleFunc(method string, path string, handler func(http.ResponseWriter, *http.Request)) {
+	// Sanity check.
+	if len(path) == 0 {
+		return
+	}
+
+	// Get the path, and clean it.
+	if path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+	if path[0] != '/' {
+		path = "/" + path
+	}
+
+	segments := strings.Split(path, "/")[1:]
+	r.routes = append(r.routes, route{
+		method:   method,
+		segments: segments,
+		handler:  handler,
+	})
+}
+
+// GetPathArg retrvies a path argument if exist.
+func GetPathArg(r *http.Request, key string) (string, bool) {
+	argv := r.Context().Value(ctxKey("argv"))
+	if argv == nil {
+		return "", false
+	}
+
+	argvMap, ok := argv.(map[string]string)
+	return argvMap[key], ok
+}
+
+// ServeHTTP try to match a route to the request and dispatche a handler.
+func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Get the path, and clean it.
+	path := req.URL.EscapedPath()
+	if len(path) > 0 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
+	// Split path into it's segments.
+	segments := strings.Split(path, "/")[1:]
+
+	// Try to match the segments with one of the registered routs.
+	for _, route := range r.routes {
+		found, argv := r.match(route, req.Method, segments)
+
+		// iIf found a match, run the handler for this route.
+		if found {
+			// Add path argv to the context.
+			if len(argv) > 0 {
+				req = req.WithContext(context.WithValue(req.Context(), ctxKey("argv"), argv))
+			}
+
+			route.handler(w, req)
+			return
+		}
+	}
+
+	// Handle page not found.
+	r.NotFoundHandler(w, req)
+}
+
+// Internal context key type.
+type ctxKey string
+
+// Internal representation of a route.
+type route struct {
+	method   string
+	segments []string
+	handler  func(http.ResponseWriter, *http.Request)
+}
+
+// match matches a request to a route, and parse the arguments embedded in the route path.
+func (r Router) match(route route, method string, segments []string) (bool, map[string]string) {
+	// Check request for method and segments length matching.
+	if method != route.method || len(segments) != len(route.segments) {
+		return false, nil
+	}
+
+	// Set a map for the path args, if found.
+	argv := make(map[string]string)
+
+	// Check each segment for a match.
+	for i, segment := range route.segments {
+		// Check for path argument.
+		if segment[0] == ':' {
+			// If this is an argument segments, parse it.
+			value, _ := url.QueryUnescape(segments[i])
+			argv[segment[1:]] = value
+
+			continue
+		}
+
+		// Match current segment.
+		if segments[i] != segment {
+			// This request does not match the route.
+			return false, nil
+		}
+	}
+
+	// Found matching route.
+	return true, argv
+}
