@@ -15,6 +15,26 @@
 
 // Package mux is a small, fast and cute http mux package.
 //
+// mux.Router supports precise routes, route paramters, and not found handler.
+//
+// Precise routes, unlike http mux, kitty routes are precise,
+// request to path "/hello/world" will not match the route "/hello/".
+//
+// NotFoundHandler is a handler function called when all routes does not match,
+// users should define a nut found handler when using kitty mux router.
+//
+// Route parameters are named URL segments that are used to capture the values
+// specified at their position in the URL. The captured values
+// retrieved calling mux.Var(request, key), with the name of the route parameter
+// as key.
+//
+// To define routes with route parameters, simply specify the route parameters
+// in the path of the route as shown below.
+//
+// Example:
+//  //  Define a route with "key" route parameter.
+//  router.HandleFunc("GET", "/val/:key", getValHandler)
+//
 // Usage:
 //  func getValHandler(w http.ResponseWriter, r *http.Request) {
 //      // Retrieve rount variables.
