@@ -14,6 +14,12 @@ Like the standard `http.ServeMux`, `gokitty/pkg/mux` matches incoming requests a
 - NotFoundHandler is a handler function called when all routes does not match.
 - Route parameters are named URL segments that are used to capture the values specified at their position in the URL.
 
+# Install
+
+``` bash
+go get -u github.com/yaacov/gokitty
+```
+
 # Example
 
 ``` go
