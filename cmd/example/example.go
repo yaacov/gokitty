@@ -47,7 +47,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, fmt.Sprintf("{\"error\":\"not found\"}"))
 }
 
-// notFound handles GET "/val" and GET "/val/:key" requests.
+// getVal handles GET "/val" and GET "/val/:key" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the ":key" route parameter.
 	key, ok := mux.Var(r, "key")
