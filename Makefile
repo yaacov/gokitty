@@ -1,5 +1,5 @@
 #
-# Copyright 2018 Yaacov Zamir <kobi.zamir@gmail.com>
+# Copyright 2019 Yaacov Zamir <kobi.zamir@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ example: $(example_src)
 lint:
 	golangci-lint \
 		run \
-		--skip-dirs=/pkg/parser \
 		--no-config \
 		--issues-exit-code=1 \
 		--deadline=15m \
