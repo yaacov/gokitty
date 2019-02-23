@@ -35,7 +35,8 @@ func getVal(w http.ResponseWriter, r *http.Request) {
   key, ok := mux.Var(r, "key")
   ...
 }
-```
+
+...
 
 // Register our routes.
 myRouter := mux.Router{
