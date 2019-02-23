@@ -8,7 +8,8 @@ Small, fast and cute URL router and dispatcher for golang.
 
 Because kittens are cuter than gorillas.
 
-Like the standard `http.ServeMux`, `gokitty/pkg/mux` matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL or other conditions. The main features are:
+Like the standard `http.ServeMux`, `gokitty/pkg/mux` matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL or other conditions. The main features are using precise routes, implementing a not found handler and route parameters.
+
 - Precise routes, unlike `http.ServeMux`, kitty does not use patterns, routes must match requested path exectly, if all routes fail, kitty will call the not found handler.
 - NotFoundHandler is a handler function called when all routes does not match.
 - Route parameters are named URL segments that are used to capture the values specified at their position in the URL.
