@@ -15,13 +15,13 @@
 
 // Package mux is a small, fast and cute http mux package.
 //
-// mux.Router supports precise routes, route paramters, and not found handler.
+// mux.Router supports precise routes, route parameters, and not found handler.
 //
 // Precise routes, unlike http mux, kitty routes are precise,
 // request to path "/hello/world" will not match the route "/hello/".
 //
 // NotFoundHandler is a handler function called when all routes does not match,
-// users should define a nut found handler when using kitty mux router.
+// users should define a not found handler when using kitty mux router.
 //
 // Route parameters are named URL segments that are used to capture the values
 // specified at their position in the URL. The captured values
@@ -32,7 +32,7 @@
 // in the path of the route as shown below.
 //
 // Example:
-//  //  Define a route with "key" route parameter.
+//  // Define a route with "key" route parameter.
 //  router.HandleFunc("GET", "/val/:key", getValHandler)
 //
 // Usage:
@@ -53,7 +53,7 @@
 //
 //  s := &http.Server{
 //      Addr:           ":8080",
-//      Handler:        loggingMiddleware(myRouter),
+//      Handler:        myRouter,
 //  }
 //  log.Fatal(s.ListenAndServe())
 package mux

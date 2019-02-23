@@ -28,8 +28,10 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
+// Global key value store.
 var vals map[string]string
 
+// logging middleware.
 func logging(logger *log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,14 +41,18 @@ func logging(logger *log.Logger) func(http.Handler) http.Handler {
 	}
 }
 
+// notFound handles no found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 	io.WriteString(w, fmt.Sprintf("{\"error\":\"not found\"}"))
 }
 
+// notFound handles GET "/val" and GET "/val/:key" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the ":key" route parameter.
 	key, ok := mux.Var(r, "key")
 
+	// If we have a valid key route parameter:
 	// Get one value by key:
 	if ok {
 		val, ok := vals[key]
@@ -59,6 +65,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If we do not have a valid key route parameter:
 	// Get all values:
 	j, err := json.Marshal(vals)
 	if err != nil {
@@ -69,6 +76,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, string(j))
 }
 
+// postVal handles POST "/val" and PUT "/val" requests.
 func postVal(w http.ResponseWriter, r *http.Request) {
 	var j []byte
 	var data map[string]string
@@ -98,7 +106,9 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, string(j))
 }
 
+// deleteVal handles DELETE "/val/:key" requests.
 func deleteVal(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the ":key" route parameter.
 	key, ok := mux.Var(r, "key")
 
 	// Get one value by key:
@@ -115,11 +125,14 @@ func deleteVal(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Create a logging middleware, it's warm and fuzzy, prrr...
 	logger := log.New(os.Stdout, "kitty: ", log.LstdFlags)
 	loggingMiddleware := logging(logger)
 
+	// Init our key value data store.
 	vals = make(map[string]string)
 
+	// Register our routes.
 	myRouter := mux.Router{
 		NotFoundHandler: notFound,
 	}
@@ -129,6 +142,7 @@ func main() {
 	myRouter.HandleFunc("PUT", "/val", postVal)
 	myRouter.HandleFunc("DELETE", "/val/:key", deleteVal)
 
+	// Serve on port 8080.
 	s := &http.Server{
 		Addr:           ":8080",
 		Handler:        loggingMiddleware(myRouter),
