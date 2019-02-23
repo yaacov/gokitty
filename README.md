@@ -16,12 +16,13 @@ Like the standard `http.ServeMux`, `gokitty/pkg/mux` matches incoming requests a
 # Example
 
 ``` go
+// notFound handles not found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(404)
   io.WriteString(w, fmt.Sprintf("{\"error\":\"not found\"}"))
 }
 
-// notFound handles GET "/val" and GET "/val/:key" requests.
+// getVal handles GET "/val" and GET "/val/:key" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
   // Retrieve the ":key" route parameter.
   key, ok := mux.Var(r, "key")
