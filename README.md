@@ -25,38 +25,41 @@ go get -u github.com/yaacov/gokitty
 ``` go
 import (
 	"net/http"
+  
   ...
 
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
+...
+
 // notFound handles not found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(404)
-  io.WriteString(w, fmt.Sprintf("{\"error\":\"not found\"}"))
 }
 
-// getVal handles GET "/val" and GET "/val/:key" requests.
+// getVal handles GET "/val/:key" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
   // Retrieve the ":key" route parameter.
   key, ok := mux.Var(r, "key")
+  
   ...
+  
 }
 
 ...
 
-// Register our routes.
-myRouter := mux.Router{
+// Create a new router and egister our routes.
+router := mux.Router{
   NotFoundHandler: notFound,
 }
-myRouter.HandleFunc("GET", "/val", getVal)
-myRouter.HandleFunc("GET", "/val/:key", getVal)
+router.HandleFunc("GET", "/val/:key", getVal)
 
 // Serve on port 8080.
 s := &http.Server{
   Addr:           ":8080",
-  Handler:        loggingMiddleware(myRouter),
+  Handler:        router,
 }
-log.Fatal(s.ListenAndServe())
+s.ListenAndServe()
 
 ```
