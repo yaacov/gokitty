@@ -59,3 +59,7 @@ clean:
 test:
 	go test ./cmd/example
 	go test ./pkg/mux
+
+.PHONY: benchmark
+benchmark:
+	go test ./pkg/mux -bench=.
