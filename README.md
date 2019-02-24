@@ -42,6 +42,10 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 func getVal(w http.ResponseWriter, r *http.Request) {
   // Retrieve the ":uid" route parameter.
   key, ok := mux.Var(r, "uid")
+  if !ok {
+    // route parameter retrieval faild.
+    ...
+  }
   
   ...
   
