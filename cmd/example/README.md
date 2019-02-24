@@ -1,4 +1,4 @@
-# Kitty key value store server
+# Kitty key value store
 
 In memory key value strore with http RESTful API.
 
