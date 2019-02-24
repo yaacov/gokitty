@@ -17,7 +17,6 @@
 package main
 
 import (
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -27,23 +26,7 @@ import (
 )
 
 // Global key value store.
-var vals map[string]string
-
-// logging middleware.
-func logging(logger *log.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger.Println(r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-// notFound handles no found requests.
-func notFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	io.WriteString(w, "{\"error\":\"not found\"}")
-}
+var vals *Store
 
 func main() {
 	// Create a logging middleware, it's warm and fuzzy, prrr...
@@ -51,7 +34,7 @@ func main() {
 	loggingMiddleware := logging(logger)
 
 	// Init our key value data store.
-	vals = make(map[string]string)
+	vals = newStore()
 
 	// Register our routes.
 	myRouter := mux.Router{

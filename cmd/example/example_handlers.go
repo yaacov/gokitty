@@ -25,6 +25,12 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
+// notFound handles no found requests.
+func notFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	io.WriteString(w, "{\"error\":\"not found\"}")
+}
+
 // getVal handles GET "/val" and GET "/val/:key" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the ":key" route parameter.
@@ -34,7 +40,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 
 	// Get one value by key:
 	if ok {
-		val, ok := vals[key]
+		val, ok := vals.get(key)
 		if ok {
 			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
 		} else {
@@ -47,7 +53,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 	// If we do not have a valid key route parameter:
 
 	// Get all values:
-	j, err := json.Marshal(vals)
+	j, err := json.Marshal(vals.list())
 	if err != nil {
 		w.WriteHeader(500)
 		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
@@ -81,7 +87,7 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 
 	// Store new data.
 	for k, v := range data {
-		vals[k] = v
+		vals.upsert(k, v)
 	}
 	io.WriteString(w, string(j))
 }
@@ -93,9 +99,9 @@ func deleteVal(w http.ResponseWriter, r *http.Request) {
 
 	// Get one value by key:
 	if ok {
-		val, ok := vals[key]
+		val, ok := vals.get(key)
 		if ok {
-			delete(vals, key)
+			vals.delete(key)
 			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
 		} else {
 			w.WriteHeader(404)
