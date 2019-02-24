@@ -20,8 +20,9 @@
 // Precise routes, unlike http mux, kitty routes are precise,
 // request to path "/hello/world" will not match the route "/hello/".
 //
-// NotFoundHandler is a handler function called when all routes does not match,
+// NotFoundHandler is a custom handler function called when all routes does not match,
 // users should define a not found handler when using kitty mux router.
+// If NotFoundHandler is not defined a default "404" handler is used.
 //
 // Route parameters are named URL segments that are used to capture the values
 // specified at their position in the URL. The captured values
