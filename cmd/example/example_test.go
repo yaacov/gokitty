@@ -22,50 +22,16 @@ import (
 	"testing"
 )
 
-func TestExample(t *testing.T) {
+func TestGetAll(t *testing.T) {
 	handler := newRouter()
 
-	// Get all values.
-	req, err := http.NewRequest("GET", "/val", nil)
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	// Check the response body is what we expect.
-	expected := "{}"
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-
-	// Store new values.
-	req, err = http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	// Check the response body is what we expect.
-	expected = "{\"gorilla\":123,\"kitty\":\"cat\"}"
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
 
 	// Get all values.
 	req, err = http.NewRequest("GET", "/val", nil)
@@ -82,11 +48,22 @@ func TestExample(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected = "{\"gorilla\":123,\"kitty\":\"cat\"}"
+	expected := "{\"gorilla\":123,\"kitty\":\"cat\"}"
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
 	}
+}
+func TestGet(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
 
 	// Get gorilla.
 	req, err = http.NewRequest("GET", "/val/gorilla", nil)
@@ -103,7 +80,65 @@ func TestExample(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected = "{\"gorilla\":123}"
+	expected := "{\"gorilla\":123}"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Get gorilla.
+	req, err = http.NewRequest("DELETE", "/val/gorilla", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Check the response body is what we expect.
+	expected := "{\"gorilla\":123}"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
+	}
+}
+
+func TestPOST(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Check the response body is what we expect.
+	expected := "{\"gorilla\":123,\"kitty\":\"cat\"}"
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
