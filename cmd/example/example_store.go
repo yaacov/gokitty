@@ -16,6 +16,9 @@
 // Package main
 package main
 
+// Global key value store.
+var store = newStore()
+
 // Store holds the key value pairs.
 type Store struct {
 	// key value store.

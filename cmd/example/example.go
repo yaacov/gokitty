@@ -25,9 +25,6 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
-// Global key value store.
-var vals *Store
-
 func newRouter() *mux.Router {
 	r := mux.Router{
 		NotFoundHandler: notFound,
@@ -45,9 +42,6 @@ func main() {
 	// Create a logging middleware, it's warm and fuzzy, prrr...
 	logger := log.New(os.Stdout, "kitty: ", log.LstdFlags)
 	loggingMiddleware := logging(logger)
-
-	// Init our key value data store.
-	vals = newStore()
 
 	// Register our routes.
 	router := newRouter()

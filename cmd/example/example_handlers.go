@@ -61,7 +61,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		// Get one value by key:
-		val, ok := vals.get(key)
+		val, ok := store.get(key)
 		if ok {
 			m = map[string]interface{}{key: val}
 		} else {
@@ -71,7 +71,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Get all values:
-		m = vals.list()
+		m = store.list()
 	}
 
 	writeMap(w, m)
@@ -93,7 +93,7 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 
 	// Store new data.
 	for k, v := range data {
-		vals.upsert(k, v)
+		store.upsert(k, v)
 	}
 
 	// Write response as json.
@@ -107,9 +107,9 @@ func deleteVal(w http.ResponseWriter, r *http.Request) {
 
 	// Get one value by key:
 	if ok {
-		val, ok := vals.get(key)
+		val, ok := store.get(key)
 		if ok {
-			vals.delete(key)
+			store.delete(key)
 			writeMap(w, map[string]interface{}{key: val})
 		} else {
 			writeKeyErr(w, key)
