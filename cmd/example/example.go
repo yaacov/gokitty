@@ -73,5 +73,5 @@ func main() {
 	}
 
 	logger.Println("Kitty key value server is starting ( try: http://localhost:8080/val ) ...")
-	log.Fatal(s.ListenAndServe())
+	logger.Fatal(s.ListenAndServe())
 }
