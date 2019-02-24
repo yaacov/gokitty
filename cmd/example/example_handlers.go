@@ -36,10 +36,20 @@ func writeMap(w http.ResponseWriter, m map[string]interface{}) {
 	io.WriteString(w, string(j))
 }
 
+// Write an error.
+func writeErr(w http.ResponseWriter, code int, message string) {
+	w.WriteHeader(code)
+	io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", message))
+}
+
+// Write a key missing error.
+func writeKeyErr(w http.ResponseWriter, key string) {
+	writeErr(w, 404, fmt.Sprintf("can't find key %s", key))
+}
+
 // notFound handles no found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	io.WriteString(w, "{\"error\":\"not found\"}")
+	writeErr(w, 404, "not found")
 }
 
 // getVal handles GET "/val" and GET "/val/:key" requests.
@@ -56,9 +66,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 			m = map[string]interface{}{key: val}
 		} else {
 			// We do not have this key in our store.
-			w.WriteHeader(404)
-			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
-
+			writeKeyErr(w, key)
 			return
 		}
 	} else {
@@ -79,8 +87,7 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 	// Read body data as json.
 	err := decoder.Decode(&data)
 	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
+		writeErr(w, 500, err.Error())
 		return
 	}
 
@@ -105,8 +112,7 @@ func deleteVal(w http.ResponseWriter, r *http.Request) {
 			vals.delete(key)
 			writeMap(w, map[string]interface{}{key: val})
 		} else {
-			w.WriteHeader(404)
-			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
+			writeKeyErr(w, key)
 		}
 	}
 }
