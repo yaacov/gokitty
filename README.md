@@ -53,6 +53,9 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 router := mux.Router{
   NotFoundHandler: notFound,
 }
+// Routes can have optional route parameters, in this example
+// route, ":key" is a route parameter, once a route is dispatched, 
+// the value of ":key" can be retrived using the `mux.Var(*http.Request, string)` method.
 router.HandleFunc("GET", "/val/:key", getVal)
 
 // Serve on port 8080.
