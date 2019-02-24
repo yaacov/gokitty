@@ -54,6 +54,7 @@ func TestGetAll(t *testing.T) {
 			rr.Body.String(), expected)
 	}
 }
+
 func TestGet(t *testing.T) {
 	handler := newRouter()
 
@@ -84,6 +85,32 @@ func TestGet(t *testing.T) {
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
+	}
+}
+
+func TestGetMissing(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Get gorilla.
+	req, err = http.NewRequest("GET", "/val/dog", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotFound)
 	}
 }
 
@@ -120,6 +147,32 @@ func TestDelete(t *testing.T) {
 	}
 }
 
+func TestDeleteMissing(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Get gorilla.
+	req, err = http.NewRequest("DELETE", "/val/dog", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotFound)
+	}
+}
+
 func TestPOST(t *testing.T) {
 	handler := newRouter()
 
@@ -142,5 +195,23 @@ func TestPOST(t *testing.T) {
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)
+	}
+}
+
+func TestPOSTError(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gori d gga ..^"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusInternalServerError {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusInternalServerError)
 	}
 }
