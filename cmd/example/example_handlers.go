@@ -25,17 +25,6 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
-// Write a map[string]interface{} to response writer, or fail.
-func writeMap(w http.ResponseWriter, m map[string]interface{}) {
-	j, err := json.Marshal(m)
-	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		return
-	}
-	io.WriteString(w, string(j))
-}
-
 // Write an error.
 func writeErr(w http.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
@@ -50,6 +39,16 @@ func writeKeyErr(w http.ResponseWriter, key string) {
 // notFound handles no found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
 	writeErr(w, 404, "not found")
+}
+
+// Write a map[string]interface{} to response writer, or fail.
+func writeMap(w http.ResponseWriter, m map[string]interface{}) {
+	j, err := json.Marshal(m)
+	if err != nil {
+		writeErr(w, 500, err.Error())
+		return
+	}
+	io.WriteString(w, string(j))
 }
 
 // getVal handles GET "/val" and GET "/val/:key" requests.
