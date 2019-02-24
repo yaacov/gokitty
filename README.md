@@ -38,10 +38,10 @@ func notFound(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(404)
 }
 
-// getVal handles GET "/val/:key" requests.
+// getVal handles GET "/val/:uid" requests.
 func getVal(w http.ResponseWriter, r *http.Request) {
-  // Retrieve the ":key" route parameter.
-  key, ok := mux.Var(r, "key")
+  // Retrieve the ":uid" route parameter.
+  key, ok := mux.Var(r, "uid")
   
   ...
   
@@ -54,9 +54,13 @@ router := mux.Router{
   NotFoundHandler: notFound,
 }
 // Routes can have optional route parameters, in this example
-// route, ":key" is a route parameter, once a route is dispatched, 
-// the value of ":key" can be retrived using the `mux.Var(*http.Request, string)` method.
-router.HandleFunc("GET", "/val/:key", getVal)
+// route, ":uid" is a route parameter, once a route is dispatched, 
+// the value of ":uid" can be retrived using the `mux.Var(*http.Request, string)` method.
+//
+// Example:
+// For a request "http://localhost:8080/val/eyfgt654efg7198u",
+// the value of ":uid" route parameter will be "eyfgt654efg7198u"
+router.HandleFunc("GET", "/val/:uid", getVal)
 
 // Serve on port 8080.
 s := &http.Server{
