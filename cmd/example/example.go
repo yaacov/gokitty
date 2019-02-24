@@ -17,8 +17,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -44,84 +42,7 @@ func logging(logger *log.Logger) func(http.Handler) http.Handler {
 // notFound handles no found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
-	io.WriteString(w, fmt.Sprintf("{\"error\":\"not found\"}"))
-}
-
-// getVal handles GET "/val" and GET "/val/:key" requests.
-func getVal(w http.ResponseWriter, r *http.Request) {
-	// Retrieve the ":key" route parameter.
-	key, ok := mux.Var(r, "key")
-
-	// If we have a valid key route parameter:
-	// Get one value by key:
-	if ok {
-		val, ok := vals[key]
-		if ok {
-			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
-		} else {
-			w.WriteHeader(404)
-			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
-		}
-		return
-	}
-
-	// If we do not have a valid key route parameter:
-	// Get all values:
-	j, err := json.Marshal(vals)
-	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		return
-	}
-	io.WriteString(w, string(j))
-}
-
-// postVal handles POST "/val" and PUT "/val" requests.
-func postVal(w http.ResponseWriter, r *http.Request) {
-	var j []byte
-	var data map[string]string
-
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-
-	// Read body data as json.
-	err := decoder.Decode(&data)
-	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		return
-	}
-
-	// Write response as json.
-	j, err = json.Marshal(data)
-	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		return
-	}
-
-	for k, v := range data {
-		vals[k] = v
-	}
-	io.WriteString(w, string(j))
-}
-
-// deleteVal handles DELETE "/val/:key" requests.
-func deleteVal(w http.ResponseWriter, r *http.Request) {
-	// Retrieve the ":key" route parameter.
-	key, ok := mux.Var(r, "key")
-
-	// Get one value by key:
-	if ok {
-		val, ok := vals[key]
-		if ok {
-			delete(vals, key)
-			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
-		} else {
-			w.WriteHeader(404)
-			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
-		}
-	}
+	io.WriteString(w, "{\"error\":\"not found\"}")
 }
 
 func main() {

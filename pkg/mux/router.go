@@ -13,49 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package mux is a small, fast and cute http mux package.
-//
-// mux.Router supports precise routes, route parameters, and not found handler.
-//
-// Precise routes, unlike http mux, kitty routes are precise,
-// request to path "/hello/world" will not match the route "/hello/".
-//
-// NotFoundHandler is a handler function called when all routes does not match,
-// users should define a not found handler when using kitty mux router.
-//
-// Route parameters are named URL segments that are used to capture the values
-// specified at their position in the URL. The captured values
-// retrieved calling mux.Var(request, key), with the name of the route parameter
-// as key.
-//
-// To define routes with route parameters, simply specify the route parameters
-// in the path of the route as shown below.
-//
-// Example:
-//  // Define a route with "key" route parameter.
-//  router.HandleFunc("GET", "/val/:key", getValHandler)
-//
-// Usage:
-//  func getValHandler(w http.ResponseWriter, r *http.Request) {
-//      // Retrieve rount variables.
-//      key, ok := mux.Var(r, "key")
-//      ...
-//      action, ok := mux.Var(r, "action")
-//      ...
-//  }
-//
-//  ...
-//
-//  myRouter := mux.Router{
-//      NotFoundHandler: notFound,
-//  }
-//  myRouter.HandleFunc("GET", "/val/:key/:action", getValHandler)
-//
-//  s := &http.Server{
-//      Addr:           ":8080",
-//      Handler:        myRouter,
-//  }
-//  log.Fatal(s.ListenAndServe())
 package mux
 
 import (
@@ -93,7 +50,7 @@ func (r *Router) HandleFunc(method string, path string, handler func(http.Respon
 		return
 	}
 
-	// Get the path, and clean it.
+	// Get the path, add `/` at the beginning and remove `/` at the end.
 	if path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
@@ -101,6 +58,7 @@ func (r *Router) HandleFunc(method string, path string, handler func(http.Respon
 		path = "/" + path
 	}
 
+	// Append a new route.
 	segments := strings.Split(path, "/")[1:]
 	r.routes = append(r.routes, route{
 		method:   method,
@@ -112,13 +70,22 @@ func (r *Router) HandleFunc(method string, path string, handler func(http.Respon
 // Var returns route variables for the current request using the route
 // variable key, ok is true if key is found and value retrieved, o/w ok is false.
 func Var(r *http.Request, key string) (string, bool) {
-	argv := r.Context().Value(ctxKey("argv"))
-	if argv == nil {
+	// Try to get the context variabls.
+	vars := r.Context().Value(ctxValsKey)
+	if vars == nil {
 		return "", false
 	}
 
-	argvMap, ok := argv.(map[string]string)
-	return argvMap[key], ok
+	// Try to convert the context variabls to a map.
+	varsMap, ok := vars.(map[string]string)
+	if !ok {
+		return "", false
+	}
+
+	// Try to get the value we want.
+	v, ok := varsMap[key]
+
+	return v, ok
 }
 
 // ServeHTTP dispatches the handler registered in the matched route.
@@ -137,13 +104,13 @@ func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// Try to match the segments with one of the registered routs.
 	for _, route := range r.routes {
-		found, argv := r.match(route, req.Method, segments)
+		found, vars := r.match(route, req.Method, segments)
 
-		// iIf found a match, run the handler for this route.
+		// If found a match, run the handler for this route.
 		if found {
 			// Add path argv to the context.
-			if len(argv) > 0 {
-				req = req.WithContext(context.WithValue(req.Context(), ctxKey("argv"), argv))
+			if len(vars) > 0 {
+				req = req.WithContext(context.WithValue(req.Context(), ctxValsKey, vars))
 			}
 
 			route.handler(w, req)
@@ -157,6 +124,9 @@ func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Internal context key type.
 type ctxKey string
+
+// The context key for the route parameters.
+const ctxValsKey = ctxKey("Vals")
 
 // Internal representation of a route.
 type route struct {
@@ -173,7 +143,7 @@ func (r Router) match(route route, method string, segments []string) (bool, map[
 	}
 
 	// Set a map for the path args, if found.
-	argv := make(map[string]string)
+	vals := make(map[string]string)
 
 	// Check each segment for a match.
 	for i, segment := range route.segments {
@@ -181,7 +151,7 @@ func (r Router) match(route route, method string, segments []string) (bool, map[
 		if segment[0] == ':' {
 			// If this is an argument segments, parse it.
 			value, _ := url.QueryUnescape(segments[i])
-			argv[segment[1:]] = value
+			vals[segment[1:]] = value
 
 			continue
 		}
@@ -194,5 +164,5 @@ func (r Router) match(route route, method string, segments []string) (bool, map[
 	}
 
 	// Found matching route.
-	return true, argv
+	return true, vals
 }
