@@ -1,6 +1,6 @@
 # Kitty key value store server
 
-In memory key value strore http server.
+In memory key value strore with http RESTful API.
 
 ## Running the server
 ``` bash
