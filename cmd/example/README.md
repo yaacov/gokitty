@@ -18,7 +18,7 @@ $ curl -s http://localhost:8080/val --data "{\"hello\": \"world\"}" | jq
   "hello": "world"
 }
 $ # insert a new key value pair.
-$ $ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\", \"gorilla\": \"big\"}" | jq
+$ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\", \"gorilla\": \"big\"}" | jq
 {
   "gorilla": "big",
   "kitty": "cat"
