@@ -33,7 +33,7 @@ import (
 
 ...
 
-// notFound handles not found requests.
+// notFound handles path not found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(404)
 }
