@@ -1,6 +1,6 @@
 # Kitty key value store
 
-In memory key value strore with http RESTful API.
+A key value store with http RESTful API.
 
 ## Running the server
 ``` bash
@@ -11,20 +11,22 @@ kitty: 2019/02/24 15:54:06 Kitty key value server is starting ( try: http://loca
 
 ## Query the server
 
-```
+``` bash
 $ # insert a new key value pair.
 $ curl -s http://localhost:8080/val --data "{\"hello\": \"world\"}" | jq
 {
   "hello": "world"
 }
 $ # insert a new key value pair.
-$ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\"}" | jq
+$ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\", \"gorilla\": \"big\"}" | jq
 {
+  "gorilla": "big",
   "kitty": "cat"
 }
 $ # query all key value pairs.
 $ curl -s http://localhost:8080/val | jq
 {
+  "gorilla": "big",
   "hello": "world",
   "kitty": "cat"
 }
@@ -41,6 +43,7 @@ $ curl -s -X DELETE http://localhost:8080/val/hello | jq
 $ # query all key value pairs.
 $ curl -s http://localhost:8080/val | jq
 {
+  "gorilla": "big",
   "kitty": "cat"
 }
 $ # delete a key value pair with key = ``cat`, no such pair in the data store.
