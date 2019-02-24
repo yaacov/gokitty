@@ -52,7 +52,8 @@ func ExampleRouter() {
 	}
 	// Routes can have optional route parameters, in this example
 	// route, ":uid" is a route parameter, once a route is dispatched,
-	// the value of ":uid" can be retrieved using the `mux.Var(*http.Request, string)` method.
+	// the value of ":uid" can be retrieved using the
+	// `mux.Var(*http.Request, string)` method.
 	//
 	// Example:
 	// For a request "http://localhost:8080/kitty/eyfgt654efg7198u",
