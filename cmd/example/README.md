@@ -11,7 +11,7 @@ kitty: 2019/02/24 15:54:06 Kitty key value server is starting ( try: http://loca
 
 ## Query the server
 
-```
+``` bash
 $ # insert a new key value pair.
 $ curl -s http://localhost:8080/val --data "{\"hello\": \"world\"}" | jq
 {
