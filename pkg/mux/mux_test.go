@@ -25,11 +25,7 @@ import (
 	"testing"
 )
 
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-}
-
-func foundHandler(w http.ResponseWriter, r *http.Request) {
+func benchmarkHandler(w http.ResponseWriter, r *http.Request) {
 	value, _ := Var(r, "key")
 
 	w.WriteHeader(200)
@@ -48,7 +44,9 @@ func ExampleRouter() {
 
 	// Create a new router and egister our routes.
 	router := Router{
-		NotFoundHandler: notFoundHandler,
+		// Optional custom "404 - page not found" handler.
+		// If not defined, router will fallback to a default 404.4 handler.
+		//NotFoundHandler: notFoundHandler,
 	}
 	// Routes can have optional route parameters, in this example
 	// route, ":uid" is a route parameter, once a route is dispatched,
@@ -83,12 +81,10 @@ func ExampleRouter() {
 
 func benchmarkRouter(i int, b *testing.B) {
 	// Create a router with 3 posible routes.
-	handler := Router{
-		NotFoundHandler: notFoundHandler,
-	}
-	handler.HandleFunc("GET", "/found", foundHandler)
-	handler.HandleFunc("GET", "/found/:key", foundHandler)
-	handler.HandleFunc("GET", "/found/:key/info", foundHandler)
+	router := Router{}
+	router.HandleFunc("GET", "/found", benchmarkHandler)
+	router.HandleFunc("GET", "/found/:key", benchmarkHandler)
+	router.HandleFunc("GET", "/found/:key/info", benchmarkHandler)
 
 	// Handle a request with on route parameter N times.
 	for n := 0; n < b.N; n++ {
@@ -98,7 +94,7 @@ func benchmarkRouter(i int, b *testing.B) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler.ServeHTTP(rr, req)
+		router.ServeHTTP(rr, req)
 
 		// Check the status code is what we expect.
 		if status := rr.Code; status != http.StatusOK {

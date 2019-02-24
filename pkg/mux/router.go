@@ -17,6 +17,7 @@ package mux
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,7 +37,7 @@ import (
 //         http.Handle("/", router)
 //     }
 type Router struct {
-	// Configurable Handler to be used when no route matches.
+	// Configurable custom Handler to be used when no route matches.
 	NotFoundHandler func(http.ResponseWriter, *http.Request)
 
 	// List of http routes.
@@ -119,7 +120,13 @@ func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Handle page not found.
-	r.NotFoundHandler(w, req)
+	if r.NotFoundHandler != nil {
+		r.NotFoundHandler(w, req)
+	} else {
+		// If no custom "page not found" handler defined,
+		// fallback to default 404.4 response.
+		pageNotFound(w, req)
+	}
 }
 
 // Internal context key type.
@@ -133,6 +140,12 @@ type route struct {
 	method   string
 	segments []string
 	handler  func(http.ResponseWriter, *http.Request)
+}
+
+// pageNotFound no handler configured.
+func pageNotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	io.WriteString(w, "404.4 – No handler configured.")
 }
 
 // match matches a request to a route, and parse the arguments embedded in the route path.
