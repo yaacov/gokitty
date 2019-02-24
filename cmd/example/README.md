@@ -18,15 +18,15 @@ $ curl -s http://localhost:8080/val --data "{\"hello\": \"world\"}" | jq
   "hello": "world"
 }
 $ # insert a new key value pair.
-$ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\", \"gorilla\": \"big\"}" | jq
+$ curl -s http://localhost:8080/val --data "{\"kitty\": \"cat\", \"gorilla\": 123}" | jq
 {
-  "gorilla": "big",
+  "gorilla": 123,
   "kitty": "cat"
 }
 $ # query all key value pairs.
 $ curl -s http://localhost:8080/val | jq
 {
-  "gorilla": "big",
+  "gorilla": 123,
   "hello": "world",
   "kitty": "cat"
 }
@@ -43,13 +43,13 @@ $ curl -s -X DELETE http://localhost:8080/val/hello | jq
 $ # query all key value pairs.
 $ curl -s http://localhost:8080/val | jq
 {
-  "gorilla": "big",
+  "gorilla": 123,
   "kitty": "cat"
 }
-$ # delete a key value pair with key = ``cat`, no such pair in the data store.
-$ curl -s -X DELETE http://localhost:8080/val/cat | jq
+$ # delete a key value pair with key = `dog`, no such pair in the data store.
+$ curl -s -X DELETE http://localhost:8080/val/dog | jq
 {
-  "error": "can't find key cat"
+  "error": "can't find key dog"
 }
 
 ```
