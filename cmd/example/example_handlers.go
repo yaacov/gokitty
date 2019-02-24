@@ -25,35 +25,9 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
-// notFound handles no found requests.
-func notFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	io.WriteString(w, "{\"error\":\"not found\"}")
-}
-
-// getVal handles GET "/val" and GET "/val/:key" requests.
-func getVal(w http.ResponseWriter, r *http.Request) {
-	// Retrieve the ":key" route parameter.
-	key, ok := mux.Var(r, "key")
-
-	// If we have a valid key route parameter:
-
-	// Get one value by key:
-	if ok {
-		val, ok := vals.get(key)
-		if ok {
-			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
-		} else {
-			w.WriteHeader(404)
-			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
-		}
-		return
-	}
-
-	// If we do not have a valid key route parameter:
-
-	// Get all values:
-	j, err := json.Marshal(vals.list())
+// Write a map[string]interface{} to response writer, or fail.
+func writeMap(w http.ResponseWriter, m map[string]interface{}) {
+	j, err := json.Marshal(m)
 	if err != nil {
 		w.WriteHeader(500)
 		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
@@ -62,9 +36,42 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, string(j))
 }
 
+// notFound handles no found requests.
+func notFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	io.WriteString(w, "{\"error\":\"not found\"}")
+}
+
+// getVal handles GET "/val" and GET "/val/:key" requests.
+func getVal(w http.ResponseWriter, r *http.Request) {
+	var m map[string]interface{}
+
+	// Retrieve the ":key" route parameter.
+	key, ok := mux.Var(r, "key")
+
+	if ok {
+		// Get one value by key:
+		val, ok := vals.get(key)
+		if ok {
+			m = map[string]interface{}{key: val}
+		} else {
+			// We do not have this key in our store.
+			w.WriteHeader(404)
+			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))
+
+			return
+		}
+	} else {
+		// Get all values:
+		m = vals.list()
+	}
+
+	writeMap(w, m)
+}
+
 // postVal handles POST "/val" and PUT "/val" requests.
 func postVal(w http.ResponseWriter, r *http.Request) {
-	var data map[string]string
+	var data map[string]interface{}
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -77,19 +84,13 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Write response as json.
-	j, err := json.Marshal(data)
-	if err != nil {
-		w.WriteHeader(500)
-		io.WriteString(w, fmt.Sprintf("{\"error\":\"%s\"}", err))
-		return
-	}
-
 	// Store new data.
 	for k, v := range data {
 		vals.upsert(k, v)
 	}
-	io.WriteString(w, string(j))
+
+	// Write response as json.
+	writeMap(w, data)
 }
 
 // deleteVal handles DELETE "/val/:key" requests.
@@ -102,7 +103,7 @@ func deleteVal(w http.ResponseWriter, r *http.Request) {
 		val, ok := vals.get(key)
 		if ok {
 			vals.delete(key)
-			io.WriteString(w, fmt.Sprintf("{\"%s\":\"%s\"}", key, val))
+			writeMap(w, map[string]interface{}{key: val})
 		} else {
 			w.WriteHeader(404)
 			io.WriteString(w, fmt.Sprintf("{\"error\":\"can't find key %s\"}", key))

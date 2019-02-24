@@ -19,28 +19,28 @@ package main
 // Store holds the key value pairs.
 type Store struct {
 	// key value store.
-	vals map[string]string
+	vals map[string]interface{}
 }
 
 func newStore() *Store {
 	s := Store{
-		vals: make(map[string]string),
+		vals: make(map[string]interface{}),
 	}
 
 	return &s
 }
 
-func (s Store) list() map[string]string {
+func (s Store) list() map[string]interface{} {
 	return s.vals
 }
 
-func (s Store) get(k string) (string, bool) {
+func (s Store) get(k string) (interface{}, bool) {
 	val, ok := s.vals[k]
 
 	return val, ok
 }
 
-func (s *Store) upsert(k string, v string) {
+func (s *Store) upsert(k string, v interface{}) {
 	s.vals[k] = v
 }
 

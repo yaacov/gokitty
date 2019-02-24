@@ -28,6 +28,19 @@ import (
 // Global key value store.
 var vals *Store
 
+func newRouter() *mux.Router {
+	r := mux.Router{
+		NotFoundHandler: notFound,
+	}
+	r.HandleFunc("GET", "/val", getVal)
+	r.HandleFunc("GET", "/val/:key", getVal)
+	r.HandleFunc("POST", "/val", postVal)
+	r.HandleFunc("PUT", "/val", postVal)
+	r.HandleFunc("DELETE", "/val/:key", deleteVal)
+
+	return &r
+}
+
 func main() {
 	// Create a logging middleware, it's warm and fuzzy, prrr...
 	logger := log.New(os.Stdout, "kitty: ", log.LstdFlags)
@@ -37,19 +50,12 @@ func main() {
 	vals = newStore()
 
 	// Register our routes.
-	myRouter := mux.Router{
-		NotFoundHandler: notFound,
-	}
-	myRouter.HandleFunc("GET", "/val", getVal)
-	myRouter.HandleFunc("GET", "/val/:key", getVal)
-	myRouter.HandleFunc("POST", "/val", postVal)
-	myRouter.HandleFunc("PUT", "/val", postVal)
-	myRouter.HandleFunc("DELETE", "/val/:key", deleteVal)
+	router := newRouter()
 
 	// Serve on port 8080.
 	s := &http.Server{
 		Addr:           ":8080",
-		Handler:        loggingMiddleware(myRouter),
+		Handler:        loggingMiddleware(router),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
