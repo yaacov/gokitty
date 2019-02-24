@@ -25,6 +25,19 @@ import (
 	"github.com/yaacov/gokitty/pkg/mux"
 )
 
+// Handler handle http requests.
+type Handler struct {
+	store *Store
+}
+
+func newHandler() *Handler {
+	h := Handler{
+		store: newStore(),
+	}
+
+	return &h
+}
+
 // Write an error.
 func writeErr(w http.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
@@ -52,7 +65,7 @@ func writeMap(w http.ResponseWriter, m map[string]interface{}) {
 }
 
 // getVal handles GET "/val" and GET "/val/:key" requests.
-func getVal(w http.ResponseWriter, r *http.Request) {
+func (h Handler) getVal(w http.ResponseWriter, r *http.Request) {
 	var m map[string]interface{}
 
 	// Retrieve the ":key" route parameter.
@@ -60,7 +73,7 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		// Get one value by key:
-		val, ok := store.get(key)
+		val, ok := h.store.get(key)
 		if ok {
 			m = map[string]interface{}{key: val}
 		} else {
@@ -70,14 +83,14 @@ func getVal(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Get all values:
-		m = store.list()
+		m = h.store.list()
 	}
 
 	writeMap(w, m)
 }
 
 // postVal handles POST "/val" and PUT "/val" requests.
-func postVal(w http.ResponseWriter, r *http.Request) {
+func (h Handler) postVal(w http.ResponseWriter, r *http.Request) {
 	var data map[string]interface{}
 
 	decoder := json.NewDecoder(r.Body)
@@ -92,7 +105,7 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 
 	// Store new data.
 	for k, v := range data {
-		store.upsert(k, v)
+		h.store.upsert(k, v)
 	}
 
 	// Write response as json.
@@ -100,15 +113,15 @@ func postVal(w http.ResponseWriter, r *http.Request) {
 }
 
 // deleteVal handles DELETE "/val/:key" requests.
-func deleteVal(w http.ResponseWriter, r *http.Request) {
+func (h Handler) deleteVal(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the ":key" route parameter.
 	key, ok := mux.Var(r, "key")
 
 	// Get one value by key:
 	if ok {
-		val, ok := store.get(key)
+		val, ok := h.store.get(key)
 		if ok {
-			store.delete(key)
+			h.store.delete(key)
 			writeMap(w, map[string]interface{}{key: val})
 		} else {
 			writeKeyErr(w, key)

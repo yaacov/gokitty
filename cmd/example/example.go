@@ -26,14 +26,18 @@ import (
 )
 
 func newRouter() *mux.Router {
+	// Create a new handler.
+	h := newHandler()
+
+	// Create a new router.
 	r := mux.Router{
 		NotFoundHandler: notFound,
 	}
-	r.HandleFunc("GET", "/val", getVal)
-	r.HandleFunc("GET", "/val/:key", getVal)
-	r.HandleFunc("POST", "/val", postVal)
-	r.HandleFunc("PUT", "/val", postVal)
-	r.HandleFunc("DELETE", "/val/:key", deleteVal)
+	r.HandleFunc("GET", "/val", h.getVal)
+	r.HandleFunc("GET", "/val/:key", h.getVal)
+	r.HandleFunc("POST", "/val", h.postVal)
+	r.HandleFunc("PUT", "/val", h.postVal)
+	r.HandleFunc("DELETE", "/val/:key", h.deleteVal)
 
 	return &r
 }
