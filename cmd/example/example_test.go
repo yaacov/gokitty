@@ -185,9 +185,9 @@ func TestPOST(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
+			status, http.StatusCreated)
 	}
 
 	// Check the response body is what we expect.
@@ -198,7 +198,33 @@ func TestPOST(t *testing.T) {
 	}
 }
 
-func TestPOSTError(t *testing.T) {
+func TestPOSTSameKyes(t *testing.T) {
+	handler := newRouter()
+
+	// Store new values.
+	req, err := http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 123}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Store same keys again.
+	req, err = http.NewRequest("POST", "/val", strings.NewReader("{\"kitty\": \"cat\", \"gorilla\": 321}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+}
+
+func TestPOSTBadRequest(t *testing.T) {
 	handler := newRouter()
 
 	// Store new values.
@@ -210,8 +236,75 @@ func TestPOSTError(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusInternalServerError {
+	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusInternalServerError)
+			status, http.StatusBadRequest)
+	}
+}
+
+func TestPUT(t *testing.T) {
+	handler := newRouter()
+
+	// Store new key value pair.
+	req, err := http.NewRequest("PUT", "/val/kitty", strings.NewReader("\"cat\""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusCreated {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusCreated)
+	}
+
+	// Check the response body is what we expect.
+	expected := "{\"kitty\":\"cat\"}"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
+	}
+
+	// Send same value again.
+	req, err = http.NewRequest("PUT", "/val/kitty", strings.NewReader("\"cat\""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusNotModified {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotModified)
+	}
+
+	// Check the response body is what we expect.
+	expected = "{\"kitty\":\"cat\"}"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
+	}
+
+	// Send modified value.
+	req, err = http.NewRequest("PUT", "/val/kitty", strings.NewReader("\"sleepy\""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Check the response body is what we expect.
+	expected = "{\"kitty\":\"sleepy\"}"
+	if rr.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			rr.Body.String(), expected)
 	}
 }

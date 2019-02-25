@@ -36,7 +36,7 @@ func newRouter() *mux.Router {
 	r.HandleFunc("GET", "/val", h.getVal)
 	r.HandleFunc("GET", "/val/:key", h.getVal)
 	r.HandleFunc("POST", "/val", h.postVal)
-	r.HandleFunc("PUT", "/val", h.postVal)
+	r.HandleFunc("PUT", "/val/:key", h.putVal)
 	r.HandleFunc("DELETE", "/val/:key", h.deleteVal)
 
 	return &r

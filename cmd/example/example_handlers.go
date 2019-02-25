@@ -46,19 +46,19 @@ func writeErr(w http.ResponseWriter, code int, message string) {
 
 // Write a key missing error.
 func writeKeyErr(w http.ResponseWriter, key string) {
-	writeErr(w, 404, fmt.Sprintf("can't find key %s", key))
+	writeErr(w, http.StatusNotFound, fmt.Sprintf("can't find key %s", key))
 }
 
 // notFound handles no found requests.
 func notFound(w http.ResponseWriter, r *http.Request) {
-	writeErr(w, 404, "not found")
+	writeErr(w, http.StatusNotFound, "not found")
 }
 
 // Write a map[string]interface{} to response writer, or fail.
 func writeMap(w http.ResponseWriter, m map[string]interface{}) {
 	j, err := json.Marshal(m)
 	if err != nil {
-		writeErr(w, 500, err.Error())
+		writeErr(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	io.WriteString(w, string(j))
@@ -89,7 +89,7 @@ func (h Handler) getVal(w http.ResponseWriter, r *http.Request) {
 	writeMap(w, m)
 }
 
-// postVal handles POST "/val" and PUT "/val" requests.
+// postVal handles POST "/val" requests.
 func (h Handler) postVal(w http.ResponseWriter, r *http.Request) {
 	var data map[string]interface{}
 
@@ -99,11 +99,19 @@ func (h Handler) postVal(w http.ResponseWriter, r *http.Request) {
 	// Read body data as json.
 	err := decoder.Decode(&data)
 	if err != nil {
-		writeErr(w, 500, err.Error())
+		writeErr(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Store new data.
+	// Check for newly created keys.
+	for k := range data {
+		if _, ok := h.store.get(k); !ok {
+			w.WriteHeader(http.StatusCreated)
+			break
+		}
+	}
+
+	// Create or modify multiple key value pairs.
 	for k, v := range data {
 		h.store.upsert(k, v)
 	}
@@ -112,19 +120,61 @@ func (h Handler) postVal(w http.ResponseWriter, r *http.Request) {
 	writeMap(w, data)
 }
 
+// postVal handles PUT "/val/:key" requests.
+func (h Handler) putVal(w http.ResponseWriter, r *http.Request) {
+	var data interface{}
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	// Read body data as json.
+	err := decoder.Decode(&data)
+	if err != nil {
+		writeErr(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Retrieve the ":key" route parameter.
+	key, ok := mux.Var(r, "key")
+	if !ok {
+		writeErr(w, http.StatusInternalServerError, "can't get key")
+	}
+
+	// Check if this is a new key.
+	if val, ok := h.store.get(key); ok {
+		// We are modifying an existing value.
+		if val == data {
+			// Value does not require change.
+			w.WriteHeader(http.StatusNotModified)
+			writeMap(w, map[string]interface{}{key: data})
+			return
+		}
+	} else {
+		// We are creating a new key value pair.
+		w.WriteHeader(http.StatusCreated)
+	}
+
+	// Create or modify key value pair.
+	h.store.upsert(key, data)
+
+	// Write response as json.
+	writeMap(w, map[string]interface{}{key: data})
+}
+
 // deleteVal handles DELETE "/val/:key" requests.
 func (h Handler) deleteVal(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the ":key" route parameter.
 	key, ok := mux.Var(r, "key")
+	if !ok {
+		writeErr(w, http.StatusInternalServerError, "can't get key")
+	}
 
 	// Get one value by key:
+	val, ok := h.store.get(key)
 	if ok {
-		val, ok := h.store.get(key)
-		if ok {
-			h.store.delete(key)
-			writeMap(w, map[string]interface{}{key: val})
-		} else {
-			writeKeyErr(w, key)
-		}
+		h.store.delete(key)
+		writeMap(w, map[string]interface{}{key: val})
+	} else {
+		writeKeyErr(w, key)
 	}
 }
