@@ -80,6 +80,6 @@ s := &http.Server{
 s.ListenAndServe()
 
 ```
-# Gopher net image
+# Gopher image
 
 https://github.com/egonelbre/gophers
